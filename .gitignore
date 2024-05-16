@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# large data in example folders
+examples/
+
+# pycharm
+.idea/
+
 # C extensions
 *.so
 
