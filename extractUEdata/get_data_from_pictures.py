@@ -3,114 +3,114 @@ import numpy as np
 import os
 import pytesseract
 
-# Speicherort von Tesseract setzen
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# if you do not have tesseract executable in your PATH, include the following:
+# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 
 def convert_red_to_white(image):
-    # Bild im HSV-Farbraum umwandeln
+    # Convert image in HSV color code
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # Definieren des Farbbereichs fÃ¼r Rot im HSV-Farbraum
-    lower_red = np.array([0, 50, 50])  # Untere Grenze fÃ¼r Rot im HSV-Farbraum
-    upper_red = np.array([10, 255, 255])  # Obere Grenze fÃ¼r Rot im HSV-Farbraum
+    # Define the color range for red in the HSV color space
+    lower_red = np.array([0, 50, 50])  # Lower limit for red in HSV code
+    upper_red = np.array([10, 255, 255])  # Upper limit for red in HSV code
 
-    # Erstellen der Maske fÃ¼r rote Pixel
+    # Create mask for red pixels
     red_mask = cv2.inRange(hsv_image, lower_red, upper_red)
 
-    # Ersetzen der roten Pixel durch weiÃŸe Pixel im Originalbild
+    # Replace red pixels with white pixels in the original image
     image[red_mask > 0] = [255, 255, 255]
 
     return image
 
 
 def convert_yellow_to_white(image):
-    # Bild im HSV-Farbraum umwandeln
+    # Convert image in HSV color code
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # Definieren des Farbbereichs fÃ¼r Gelb im HSV-Farbraum
-    lower_yellow = np.array([15, 50, 50])  # Untere Grenze fÃ¼r Gelb im HSV-Farbraum
-    upper_yellow = np.array([30, 255, 255])  # Obere Grenze fÃ¼r Gelb im HSV-Farbraum
+    # Define the color range for yellow in the HSV color space
+    lower_yellow = np.array([15, 50, 50])  # Lower limit for yellow in HSV code
+    upper_yellow = np.array([30, 255, 255])  # Upper limit for yellow in HSV code
 
-    # Erstellen der Maske fÃ¼r gelbe Pixel
+    # Create mask for yellow pixels
     yellow_mask = cv2.inRange(hsv_image, lower_yellow, upper_yellow)
 
-    # Ersetzen der gelben Pixel durch weiÃŸe Pixel im Originalbild
+    # Replace yellow pixels with white pixels in the original image
     image[yellow_mask > 0] = [255, 255, 255]
 
     return image
 
 
 def convert_red_and_yellow_to_white(image):
-    # Rot zu WeiÃŸ konvertieren
+    # Convert red to white
     image_with_red_converted = convert_red_to_white(image.copy())
 
-    # Gelb zu WeiÃŸ konvertieren
+    # Convert yellow to white
     image_with_red_and_yellow_converted = convert_yellow_to_white(image_with_red_converted.copy())
 
     return image_with_red_and_yellow_converted
 
 
 def read_text_from_image(image_path):
-    # Text aus dem Bild mit Tesseract auslesen
-    text = pytesseract.image_to_string(cv2.imread(image_path), lang='eng')  # Korrekte Verwendung von cv2.imread
+    # Read text from the image with Tesseract
+    text = pytesseract.image_to_string(cv2.imread(image_path), lang='eng')
     return text.strip()
 
 
 def process_images_in_folder(input_folder, output_folder):
-    # Sicherstellen, dass der Ausgabeordner vorhanden ist
+    # Ensure that the output folder exists
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    # Flag, um zu Ã¼berprÃ¼fen, ob die Mindestbildnummer erreicht wurde
+    # Flag to check whether the minimum image number has been reached
     reached_min_number = False
 
-    # Iterieren durch alle Dateien im Eingabeordner
-    for file_name in sorted(os.listdir(input_folder)):  # Sortiere Dateien nach Dateinamen
-        # VollstÃ¤ndigen Pfad zur aktuellen Datei erstellen
+    # Iterate through all files in the input folder
+    for file_name in sorted(os.listdir(input_folder)):  # Sort files by file name
+        # Create complete path to current file
         input_image_path = os.path.join(input_folder, file_name)
 
-        # Nur Bilddateien verarbeiten (z. B. jpg, png)
+        # Only process image files (e.g. jpg, png)
         if os.path.isfile(input_image_path) and file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
-            # ÃœberprÃ¼fen, ob die aktuelle Datei grÃ¶ÃŸer oder gleich Shot.172800.jpeg ist
+            # Check whether the current file is larger than or equal to Shot.172800.jpeg
             if int(file_name.split('.')[1]) >= 172800:
-                # Bild laden
+                # Load image
                 image = cv2.imread(input_image_path)
 
-                # Bild verarbeiten und im Ausgabeordner speichern
+                # Process image and save in output folder
                 processed_image = convert_red_and_yellow_to_white(image)
                 output_image_path = os.path.join(output_folder, file_name)
                 cv2.imwrite(output_image_path, processed_image)
-                print(f"Bild '{file_name}' wurde erfolgreich bearbeitet und in '{output_image_path}' gespeichert.")
+                print(f"'{file_name}' was successfully edited and saved in '{output_image_path}'")
 
-                # Text aus dem bearbeiteten Bild auslesen
+                # Read text from the edited image
                 text = read_text_from_image(output_image_path)
 
-                # Text in Textdatei speichern
+                # Save text to text file
                 txt_file_path = os.path.join(output_folder, f"{os.path.splitext(file_name)[0]}.txt")
                 with open(txt_file_path, "w") as txt_file:
                     txt_file.write(text)
 
-                print(f"Text aus Bild '{file_name}' wurde erfolgreich ausgelesen und in '{txt_file_path}' gespeichert.")
+                print(f"Successfully extracted text from image '{file_name}' and saved in '{txt_file_path}'")
 
-                # Umwandlung von Punkten zu Kommas und umgekehrt in der Textdatei durchfÃ¼hren
+                # Convert dots to commas and vice versa in the text file
                 with open(txt_file_path, "r") as txt_file:
                     content = txt_file.read()
 
-                content = content.replace('.', 'temp')  # TemporÃ¤r Punkt durch anderes Zeichen ersetzen
-                content = content.replace(',', '.')  # Komma durch Punkt ersetzen
-                content = content.replace('temp', ',')  # TemporÃ¤res Zeichen durch Komma ersetzen
+                content = content.replace('.', 'temp')  # Replace temporary dot with another character
+                content = content.replace(',', '.')  # Replace comma with period
+                content = content.replace('temp', ',')  # Replace temporary character with comma
 
                 with open(txt_file_path, "w") as txt_file:
                     txt_file.write(content)
 
 
 def main():
-    # Eingabeordner und Ausgabeordner definieren
+    # Define input folder and output folder
     input_folder = "C:/Users/Das_Viech_3000/Documents/UE5.3/CorrectFlow/Saved/MovieRenders/5cm/PR0,4PF0,95/SP10000FPS120"
     output_folder = "C:/Users/Das_Viech_3000/Documents/TEST"
 
-    # Verarbeiten der Bilder im Eingabeordner
+    # Processing the images in the input folder
     process_images_in_folder(input_folder, output_folder)
 
 

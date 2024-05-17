@@ -51,4 +51,14 @@ if __name__ == "__main__":
         except KeyError or TypeError or ValueError:
             print("Wrong input arguments. Script requires 4 input arguments:\n" + str(dir(copy_shot_range)))
     else:
-        print("Script requires 4 input arguments:\n" + str(dir(copy_shot_range)))
+        print("Working with in-script variable definitions...")
+
+        # defined input and output (target) folders
+        input_folder = r"D:\Games\MorePics"
+        output_folder = r"D:\Games\NewPics"
+        # define image number range to copy
+        start_num = 152000
+        end_num = 155000
+
+        # copy range of images from input to output folder
+        copy_shot_range(input_folder, output_folder, start_num, end_num)
