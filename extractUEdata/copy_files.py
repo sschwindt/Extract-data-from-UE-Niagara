@@ -8,7 +8,7 @@ def copy_shot_images(input_folder, output_folder, batch_size):
         os.makedirs(output_folder)
 
     # Generate list of all multiples of batch_size
-    multiples = [batch_size * i for i in range(1, 43)]  # 43 multiples of 4800 to 206400
+    multiples = [batch_size * i for i in range(1, 46)]  # 45 multiples of 4800 to 206400
 
     # Copy each image according to the multiples of batch_size
     for idx, multiple in enumerate(multiples, start=1):
